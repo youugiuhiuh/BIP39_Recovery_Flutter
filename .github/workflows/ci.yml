@@ -16,6 +16,20 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "是否创建 Release (push 到 main 时自动创建)"
+        type: boolean
+        default: false
+      version_bump:
+        description: "版本号增量类型 (仅 create_release=true 时有效)"
+        type: choice
+        default: "patch"
+        options:
+          - "patch"
+          - "minor"
+          - "major"
 
 jobs:
   build-android:
@@ -179,7 +193,7 @@ jobs:
   create-release:
     needs: [build-android, build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
